@@ -1,245 +1,206 @@
-# 👋 Emmanuel Ruaudel — Directeur de la Transformation Numérique
-
-> 🇬🇧 English version
-
-> **J'aide les dirigeants de TPE/PME à libérer 5 à 10 h/semaine** en automatisant leurs tâches répétitives —
-> et je pilote la transformation de bout en bout : audit des processus, cas d'usage IA à fort ROI,
-> déploiement, fiabilisation et accompagnement du changement.
-
-📍 Rennes · 🌐 [Mon portfolio](https://rennesdev.fr/portofolio.html)
-
----
-
-## 🎯 Missions & objectifs
-
-- **Automatiser le quotidien des TPE/PME** : formulaires → devis → emails, veille concurrentielle, alertes et rapports — avec un retour mesuré en heures gagnées.
-- **Construire des outils simples et réellement utilisés** : applications web et Android, légères, hors ligne quand il le faut, publiées sur le Play Store.
-- **Faire tourner une infrastructure complète en autonomie** : VPS Linux, Docker, supervision, sauvegardes chiffrées, CI/CD — tout est documenté, versionné et automatisé.
-- **IA pragmatique** : LLM via API (Mistral) par défaut — l'auto-hébergement a été testé puis écarté au profit de la sobriété ressources — le bon outil au bon endroit.
+📊 README vivant — GitHub Actions
 
----
+Automatisation zéro LLM, zéro token, zéro ressource VPS : un workflow GitHub Actions régénère chaque jour un SVG (stats + derniers commits) et le committe dans le repo. Ton README affiche une carte toujours à jour.
 
-## 📊 Métriques
+Coût : gratuit sur repos publics (runners gratuits sans limite). Sur repo privé : ~1 min/jour ≈ 35 min/mois, largement sous les 2 000 minutes offertes par le plan Free.
 
-### Impact client (conseil)
-   Métrique | Valeur |
- |---|---|
- | Temps récupéré par dirigeant | **5 à 10 h/semaine** |
- | Gain par brique automatisée (catalogue de 15 briques : devis, relances, reporting, collecte multi-canaux…) | **1 à 5 h/semaine par brique** |
- | Cycle de devis automatisé (typique) | **48 h → 15 min** |
- | Erreurs de saisie / oublis de facturation | **fortement réduites** (règles métier + relances automatiques) |
+Consommation API GitHub : ~7 requêtes/jour, sans token (limite 60 req/h) ou avec GITHUB_TOKEN (5000 req/h).
 
-*Chaque mission commence par la mesure du temps perdu aujourd'hui, et se conclut sur le temps récupéré — pas de technologie « pour la technologie ».*
 
-### L'infrastructure en chiffres (réel, public)
- | Métrique | Valeur |
- |---|---|
- | Conteneurs Docker supervisés | **10** |
- | CI obligatoire sur chaque pull request | **100 %** (build Android vérifié avant merge) |
- | Dépendances mises à jour + mergées | **automatiquement chaque semaine, 0 clic** |
- | Journal quotidien de l'infrastructure | **commité automatiquement chaque soir** |
- | Incidents | **issue ouverte automatiquement, clôturée à la résolution** |
- | Sauvegardes | **chiffrées, hors du serveur, hebdomadaires** |
 
----
+1. Le workflow — .github/workflows/live-readme.yml
 
-## 🛠️ Stacks
- | Domaine | Technologies |
- |---|---|
- | Langages | ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black) ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![HTML/CSS](https://img.shields.io/badge/HTML%2FCSS-E34F26?logo=html5&logoColor=white) |
- | Web & API | ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) |
- | Mobile | ![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=black) ![Capacitor](https://img.shields.io/badge/Capacitor-119EFF?logo=capacitor&logoColor=white) ![Play Store](https://img.shields.io/badge/Play_Store-414141?logo=googleplay&logoColor=white) |
- | Automatisation & IA | ![n8n](https://img.shields.io/badge/n8n-EA4B71?logo=n8n&logoColor=white) ![Mistral](https://img.shields.io/badge/Mistral-FF7000?logo=mistralai&logoColor=white) ![Telegram Bots](https://img.shields.io/badge/Telegram-26A5E4?logo=telegram&logoColor=white) |
- | Infra & DevOps | ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?logo=ubuntu&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white) ![Caddy](https://img.shields.io/badge/Caddy-DD5A6A) ![Cloudflare](https://img.shields.io/badge/Cloudflare-F38020?logo=cloudflare&logoColor=white) |
+name: Live README
 
----
+on:
+  schedule:
+    - cron: "17 6 * * *"   # tous les jours à 06:17 UTC = 07:17 heure de Paris
+  workflow_dispatch:        # bouton "Run workflow" dans l'onglet Actions
 
-## 🏆 Projets phares
+permissions:
+  contents: write
 
-### 1. Nav.rennesdev — navigateur web « mode lecture » avec IA locale
-Un navigateur simplifié qui **extrait le contenu des pages et l'analyse avec un modèle IA local** (résumé, questions/réponses) — les données ne quittent jamais le serveur.
-- Node.js sans dépendance, authentification, HTTPS, Docker
-- IA : analyse via API Mistral — Ollama local testé puis abandonné (trop gourmand en RAM pour le VPS)
-- [repo](https://github.com/Ruaudel-Emmanuel/Nav.rennesdev)
+concurrency:
+  group: live-readme
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Générer le SVG
+        run: python scripts/generate_activity_svg.py
+        env:
+          OWNER: ${{ github.repository_owner }}
+          # Token automatique : évite les limites de débit, rien à configurer
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Committer si le SVG a changé
+        run: |
+          git config user.name  "readme-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/github-activity.svg
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: refresh live readme [skip ci]"
+            git push
+          fi
+
+
+
+2. Le script — scripts/generate_activity_svg.py
+
+Python stdlib uniquement (aucun pip install), appelable aussi en local : OWNER=ton-pseudo python scripts/generate_activity_svg.py.
+
+#!/usr/bin/env python3
+"""Génère assets/github-activity.svg : carte d'activité pour un README vivant."""
+import json
+import os
+import urllib.request
+from datetime import datetime, timedelta, timezone
+
+OWNER = os.environ.get("OWNER") or os.environ.get("GITHUB_REPOSITORY", "x/y").split("/")[0]
+TOKEN = os.environ.get("GITHUB_TOKEN")  # optionnel (repos publics)
+API = "https://api.github.com"
 
-### 2. Lecteur-PDF — app Android 100 % hors ligne
-Lecteur PDF avec **PDF.js embarqué** (aucun CDN), zoom, mode sombre mémorisé, **zéro permission Android** (ni réseau ni stockage).
-- Capacitor 8 · CI GitHub Actions · release signée
-- Publié sur le **Play Store** (test fermé)
-- [repo](https://github.com/Ruaudel-Emmanuel/Lecteur-PDF)
 
-### 3. rennesdev-vps-ops — l'infrastructure qui fait tout tourner
-Le cœur technique de mon activité, **documenté et versionné comme un projet à part entière** :
-- 10 conteneurs Docker (n8n, PostgreSQL, monitoring…), reverse proxy, sauvegardes chiffrées
-- Bots Telegram de contrôle, watchdog qui **ouvre/clôt ses propres issues GitHub**
-- CI sur les builds Android, dépendances auto-mergées, journal quotidien commité automatiquement
-- [repo](https://github.com/Ruaudel-Emmanuel/rennesdev-vps-ops)
+def gh(path):
+    req = urllib.request.Request(
+        API + path,
+        headers={"Accept": "application/vnd.github+json",
+                 "User-Agent": "live-readme-bot"},
+    )
+    if TOKEN:
+        req.add_header("Authorization", f"Bearer {TOKEN}")
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode())
 
-### 4. Fiscale-vps — facturation électronique conforme, locale, sans abonnement
-Générateur **Factur-X** (PDF/A-3 + XML embarqué) conforme EN 16931 — pensé pour préparer les TPE/PME à l'obligation 2026, sans SaaS ni abonnement.
-- Python (reportlab + factur-x) · interface web légère · validation veraPDF
-- [repo](https://github.com/Ruaudel-Emmanuel/Fiscale-vps)
 
-### 5. surveillance-tarifaire — veille concurrentielle automatisée
-Suivi automatique des tarifs concurrents : collecte planifiée, comparaison, alertes.
-- Python · planification · rapports automatiques
-- [repo](https://github.com/Ruaudel-Emmanuel/surveillance-tarifaire)
+def esc(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-### 6. GitHub Auditor — audit IA quotidien de tous mes projets
-Un workflow n8n qui **analyse chaque matin à 06h00** tous mes dépôts GitHub actifs via **l'API Mistral** et m'envoie un rapport constructif sur Telegram.
-- Le LLM adopte le rôle d'**« Architecte Collaborateur »** (Staff Engineer enthousiaste)
-- 4 dimensions d'analyse : Issues, Bugs/Risques, Code Review, PR
-- Zéro ressource serveur consommée : le VPS reste léger
-- [repo](https://github.com/Ruaudel-Emmanuel/GitHub-Auditor)
 
-### 7. Scan ubuntu-latest — veille CI/CD GitHub Actions
-Un workflow n8n qui **scanne chaque matin à 05h00** l'ensemble de mes workflows GitHub Actions pour détecter l'utilisation de `runs-on: ubuntu-latest`. En vue du passage Ubuntu 24.04 → 26.04, ce scan identifie les workflows à migrer et génère un rapport avec **l'API Mistral** sur Telegram.
-- Les repos concernés (dont Lecteur-PDF) sont **déjà figés sur ubuntu-24.04**
-- Rapport Telegram automatisé avec analyse LLM, aucun secret dans le code
-- [workflow exporté](https://github.com/Ruaudel-Emmanuel/rennesdev-vps-ops/tree/main/workflows/scan-ubuntu-latest)
+def main():
+    # 1. Tous les repos personnels (hors forks)
+    repos = [r for r in gh(f"/users/{OWNER}/repos?per_page=100&type=owner")
+             if not r["fork"]]
 
----
+    stars = sum(r["stargazers_count"] for r in repos)
+    forks = sum(r["forks_count"] for r in repos)
+    issues = sum(r["open_issues_count"] for r in repos)
 
-## ⚙️ Ce GitHub s'administre en grande partie tout seul
+    # 2. Les 3 repos les plus récemment actifs + commits des 7 derniers jours
+    since = (datetime.now(timezone.utc) - timedelta(days=7)
+             ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    active = sorted(repos, key=lambda r: r["pushed_at"], reverse=True)[:3]
 
-Preuve par l'exemple de ce que je vends aux PME :
+    weekly = 0
+    lines = []
+    for r in active:
+        commits = gh(f"/repos/{OWNER}/{r['name']}/commits?per_page=100&since={since}")
+        weekly += len(commits)
+        last = gh(f"/repos/{OWNER}/{r['name']}/commits?per_page=1")[0]
+        msg = esc(last["commit"]["message"].splitlines()[0][:46])
+        lines.append((r["name"], msg))
 
-- 🧪 **CI sur chaque PR** : build Android vérifié avant tout merge (check requis pour merger)
-- 🔄 **Dépendances** : PR chaque semaine, mergées automatiquement si la CI est verte
-- 📔 **Journal quotidien** : l'état de l'infrastructure est commité automatiquement chaque soir
-- 🚨 **Incidents** : le watchdog du serveur **ouvre et clôt ses propres issues** GitHub
-- 📊 Templates d'issues/PR et protections de branches sur tous les dépôts actifs
+    today = datetime.now(timezone.utc).strftime("%d/%m/%Y")
 
----
+    # 3. Construction du SVG
+    fg, dim, accent, bg = "#e6edf3", "#8b949e", "#58a6ff", "#0d1117"
+    rows = "\n".join(
+        f'<text x="32" y="{250 + i * 34}" fill="{fg}" font-size="16">'
+        f'<tspan fill="{accent}">{esc(name)}</tspan>'
+        f'<tspan fill="{dim}" dx="10">·</tspan>'
+        f'<tspan dx="10">{msg}</tspan></text>'
+        for i, (name, msg) in enumerate(lines)
+    )
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="560" height="390" viewBox="0 0 560 390">
+  <rect width="560" height="390" rx="12" fill="{bg}"/>
+  <rect x="24" y="24" width="70" height="4" rx="2" fill="{accent}"/>
+  <text x="24" y="64" fill="{fg}" font-size="20" font-weight="600"
+        font-family="Segoe UI, Helvetica, Arial, sans-serif">
+    Activité GitHub — {esc(OWNER)}</text>
+  <text x="536" y="64" text-anchor="end" fill="{dim}" font-size="13"
+        font-family="Segoe UI, sans-serif">maj {today}</text>
+  <text x="32" y="128" fill="{fg}" font-size="16" font-family="Segoe UI, sans-serif">
+    <tspan font-size="28" font-weight="700">{stars}</tspan>
+    <tspan fill="{dim}" dx="8" font-size="14">stars</tspan>
+    <tspan dx="28" font-size="28" font-weight="700">{forks}</tspan>
+    <tspan fill="{dim}" dx="8" font-size="14">forks</tspan>
+    <tspan dx="28" font-size="28" font-weight="700">{issues}</tspan>
+    <tspan fill="{dim}" dx="8" font-size="14">issues ouvertes</tspan>
+    <tspan dx="28" font-size="28" font-weight="700">{weekly}</tspan>
+    <tspan fill="{dim}" dx="8" font-size="14">commits / 7 j</tspan>
+  </text>
+  <line x1="24" y1="168" x2="536" y2="168" stroke="#30363d" stroke-width="1"/>
+  <text x="32" y="204" fill="{dim}" font-size="14" font-family="Segoe UI, sans-serif">
+    DERNIERS COMMITS</text>
+  {rows}
+</svg>
+"""
+    os.makedirs("assets", exist_ok=True)
+    with open("assets/github-activity.svg", "w", encoding="utf-8") as f:
+        f.write(svg)
+    print(f"SVG généré : {len(repos)} repos, {stars} stars, {weekly} commits/7j")
 
-## 📦 Workflows n8n archivés (trace historique)
 
-Ces dépôts étaient des **exports de workflows n8n** (JSON + README), créés automatiquement lors des sessions de développement. Ils ont été **supprimés le 02/10/2026** pour nettoyer le profil GitHub ; les données sont sauvegardées en local.
+if __name__ == "__main__":
+    main()
 
-`n8n-to-Github` · `Daily-Github` · `Ai-agent-convervationel` · `AI-personnal-assistant` · `rss-discord` · `mail-auto` · `Newsletter-podcast` · `Mail-to-sheet` · `Cold-Lead-Reactivation` · `Deep-research` · `Parallel-Batch-Processing` · `Local_Agent_IA` · `rss-codeur`
 
----
 
-## 📬 Contact
+3. Dans le README du repo
 
-- 🌐 [Portfolio](https://rennesdev.fr/portofolio.html)
-- 💬 via GitHub (ouvert aux discussions, missions et opportunités)
+## 📊 En direct de mon GitHub
 
----
+![Activité GitHub](assets/github-activity.svg)
 
-## 📊 Activité
 
-<p><img src="https://raw.githubusercontent.com/Ruaudel-Emmanuel/live-readme/main/assets/github-activity.svg" alt="Activité GitHub en direct — générée automatiquement chaque matin" width="560" /></p>
-<p><img src="https://github-readme-stats.vercel.app/api?username=Ruaudel-Emmanuel&show_icons=true&theme=default" height="150" /></p>
-<p><img src="https://streak-stats.demolab.com?user=Ruaudel-Emmanuel" height="150" /></p>
 
----
+4. Mise en route (5 minutes)
 
-<a id="-english-version"></a>
-## 🇬🇧 English version
 
-# 👋 Emmanuel Ruaudel — Digital Transformation Director
 
-> **I help small-business owners free up 5 to 10 hours a week** by automating their repetitive tasks —
-> and I run the transformation end to end: process audit, high-ROI AI use cases, deployment,
-> reliability and change management.
 
-📍 Rennes, France · 🌐 [My portfolio](https://rennesdev.fr/portofolio.html)
 
----
+Créer le fichier .github/workflows/live-readme.yml (section 1) sur la branche par défaut.
 
-## 🎯 Mission & goals
 
-- **Automate the daily grind of small businesses**: forms → quotes → emails, competitive watch, alerts and reports — with results measured in hours saved.
-- **Build simple tools that actually get used**: web and Android apps, lightweight, offline-capable when needed, published on the Play Store.
-- **Run a full infrastructure on my own**: Linux VPS, Docker, monitoring, encrypted backups, CI/CD — everything documented, version-controlled and automated.
-- **Pragmatic AI**: LLMs via API (Mistral) by default — self-hosting tested then dropped for resource efficiency — the right tool in the right place.
 
----
+Créer scripts/generate_activity_svg.py (section 2).
 
-## 📊 Metrics
 
-### Client impact (consulting)
- | Metric | Value |
- |---|---|
- | Time freed per business owner | **5 to 10 hours/week** |
- | Gain per automated building block (catalogue of 15 blocks: quotes, follow-ups, reporting, multi-channel intake…) | **1 to 5 hours/week per block** |
- | Automated quote turnaround (typical) | **48 h → 15 min** |
- | Data-entry errors / missed invoicing | **sharply reduced** (business rules + automatic follow-ups) |
 
-*Every engagement starts by measuring the time lost today and ends with the time recovered — no technology "for technology's sake".*
+Ajouter le bloc (section 3) au README.md.
 
-### The infrastructure in numbers (real, public)
- | Metric | Value |
- |---|---|
- | Supervised Docker containers | **10** |
- | CI enforced on every pull request | **100%** (Android build verified before merge) |
- | Dependencies updated & merged | **automatically every week, zero clicks** |
- | Daily infrastructure journal | **committed automatically every evening** |
- | Incidents | **issue opened automatically, closed on resolution** |
- | Backups | **encrypted, off-server, weekly** |
 
----
 
-## 🛠️ Tech stack
+Onglet Actions → workflow Live README → Run workflow pour tester immédiatement.
 
-JavaScript · Python · Node.js · PostgreSQL · Docker · Android (Capacitor) · Play Store · n8n · Mistral API · Telegram bots · GitHub Actions · Caddy · Cloudflare · Linux/Ubuntu
 
----
 
-## 🏆 Featured projects
+Vérifier que le SVG est commité et s'affiche dans le README.
 
-### 1. Nav.rennesdev — "reading mode" web browser with local AI
-A simplified browser that **extracts page content and analyses it with a local AI model** (summarise, Q&A) — data never leaves the server.
-- Dependency-free Node.js, authentication, HTTPS, Docker
-- AI: analysis via Mistral API — local Ollama tested then dropped (too RAM-hungry for the VPS)
-- [repo](https://github.com/Ruaudel-Emmanuel/Nav.rennesdev)
+Le workflow tourne ensuite tout seul chaque matin ; s'il n'y a aucun changement (aucun commit, stats identiques), rien n'est commité — l'historique reste propre.
 
-### 2. Lecteur-PDF — fully offline Android app
-PDF reader with **embedded PDF.js** (no CDN), zoom, remembered dark mode, **zero Android permissions** (no network, no storage).
-- Capacitor 8 · GitHub Actions CI · signed release
-- Published on the **Play Store** (closed testing)
-- [repo](https://github.com/Ruaudel-Emmanuel/Lecteur-PDF)
+5. Notes
 
-### 3. rennesdev-vps-ops — the infrastructure that runs everything
-The technical core of my business, **documented and versioned as a real project**:
-- 10 Docker containers (n8n, PostgreSQL, monitoring…), reverse proxy, encrypted backups
-- Telegram control bots, a watchdog that **opens and closes its own GitHub issues**
-- CI on Android builds, auto-merged dependencies, daily auto-committed journal
-- [repo](https://github.com/Ruaudel-Emmanuel/rennesdev-vps-ops)
 
-### 4. Fiscale-vps — compliant e-invoicing, local, subscription-free
-A **Factur-X generator** (PDF/A-3 + embedded XML, EN 16931 compliant) — built to prepare SMEs for the 2026 mandate, with no SaaS and no subscription.
-- Python (reportlab + factur-x) · lightweight web UI · veraPDF validation
-- [repo](https://github.com/Ruaudel-Emmanuel/Fiscale-vps)
 
-### 5. surveillance-tarifaire — automated competitor price watch
-Automatic tracking of competitors' prices: scheduled collection, comparison, alerts.
-- Python · scheduling · automated reports
-- [repo](https://github.com/Ruaudel-Emmanuel/surveillance-tarifaire)
 
-### 6. GitHub Auditor — daily AI audit of all my projects
-An n8n workflow that **every morning at 06:00** analyses all my active GitHub repos using **the Mistral API** and sends a constructive report to Telegram.
-- The LLM acts as an **"Architecte Collaborateur"** (enthusiastic Staff Engineer)
-- 4 analysis dimensions: Issues, Bug/Risk, Code Review, PR
-- Zero server resources consumed: the VPS stays lean
-- [repo](https://github.com/Ruaudel-Emmanuel/GitHub-Auditor)
 
----
+Cache d'images GitHub (Camo) : GitHub met en cache les images du README. Le SVG se rafraîchit automatiquement au bout de quelques minutes à quelques heures après le commit. Pour tester, affiche directement assets/github-activity.svg dans le repo.
 
-## ⚙️ This GitHub largely runs itself
 
-Proof by example of what I sell to small businesses:
 
-- 🧪 **CI on every PR**: Android build verified before any merge (required check)
-- 🔄 **Dependencies**: PR every week, merged automatically when CI is green
-- 📔 **Daily journal**: infrastructure state committed automatically every evening
-- 🚨 **Incidents**: the server watchdog **opens and closes its own GitHub issues**
-- 📊 Issue/PR templates and branch protection on all active repos
+Dormance des workflows : GitHub désactive le cron d'un repo public sans activité depuis 60 jours — un push de temps en temps suffit à le garder actif.
 
----
 
-## 📬 Contact
 
-- 🌐 [Portfolio](https://rennesdev.fr/portofolio.html)
-- 💬 via GitHub (open to conversations, missions and opportunities)
+Personnalisation : couleurs (variables fg, accent, bg), nombre de repos suivis ([:3]), fenêtre de commits (days=7) — tout se règle en tête de script, sans dépendance.
+
