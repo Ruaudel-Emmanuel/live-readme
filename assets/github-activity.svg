@@ -5,7 +5,7 @@
         font-family="Segoe UI, Helvetica, Arial, sans-serif">
     Activité GitHub — Ruaudel-Emmanuel</text>
   <text x="536" y="64" text-anchor="end" fill="#8b949e" font-size="13"
-        font-family="Segoe UI, sans-serif">maj 31/10/2026</text>
+        font-family="Segoe UI, sans-serif">maj 01/11/2026</text>
   <text x="32" y="128" fill="#e6edf3" font-size="16" font-family="Segoe UI, sans-serif">
     <tspan font-size="28" font-weight="700">11</tspan>
     <tspan fill="#8b949e" dx="8" font-size="14">stars</tspan>
@@ -13,13 +13,13 @@
     <tspan fill="#8b949e" dx="8" font-size="14">forks</tspan>
     <tspan dx="28" font-size="28" font-weight="700">19</tspan>
     <tspan fill="#8b949e" dx="8" font-size="14">issues ouvertes</tspan>
-    <tspan dx="28" font-size="28" font-weight="700">18</tspan>
+    <tspan dx="28" font-size="28" font-weight="700">22</tspan>
     <tspan fill="#8b949e" dx="8" font-size="14">commits / 7 j</tspan>
   </text>
   <line x1="24" y1="168" x2="536" y2="168" stroke="#30363d" stroke-width="1"/>
   <text x="32" y="204" fill="#8b949e" font-size="14" font-family="Segoe UI, sans-serif">
     DERNIERS COMMITS</text>
-  <text x="32" y="250" fill="#e6edf3" font-size="16"><tspan fill="#58a6ff">live-readme</tspan><tspan fill="#8b949e" dx="10">·</tspan><tspan dx="10">Revise README with new branding and project de</tspan></text>
-<text x="32" y="284" fill="#e6edf3" font-size="16"><tspan fill="#58a6ff">Ruaudel-Emmanuel</tspan><tspan fill="#8b949e" dx="10">·</tspan><tspan dx="10">Update AI model reference in README</tspan></text>
+  <text x="32" y="250" fill="#e6edf3" font-size="16"><tspan fill="#58a6ff">Ruaudel-Emmanuel</tspan><tspan fill="#8b949e" dx="10">·</tspan><tspan dx="10">Refactor README.md to eliminate duplicate metr</tspan></text>
+<text x="32" y="284" fill="#e6edf3" font-size="16"><tspan fill="#58a6ff">live-readme</tspan><tspan fill="#8b949e" dx="10">·</tspan><tspan dx="10">Revise README for project updates and automati</tspan></text>
 <text x="32" y="318" fill="#e6edf3" font-size="16"><tspan fill="#58a6ff">Nav.rennesdev</tspan><tspan fill="#8b949e" dx="10">·</tspan><tspan dx="10">Add personal note from Emmanuel Ruaudel</tspan></text>
 </svg>
