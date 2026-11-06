@@ -5,7 +5,7 @@
         font-family="Segoe UI, Helvetica, Arial, sans-serif">
     Activité GitHub — Ruaudel-Emmanuel</text>
   <text x="536" y="64" text-anchor="end" fill="#8b949e" font-size="13"
-        font-family="Segoe UI, sans-serif">maj 05/11/2026</text>
+        font-family="Segoe UI, sans-serif">maj 06/11/2026</text>
   <text x="32" y="128" fill="#e6edf3" font-size="16" font-family="Segoe UI, sans-serif">
     <tspan font-size="28" font-weight="700">11</tspan>
     <tspan fill="#8b949e" dx="8" font-size="14">stars</tspan>
@@ -13,7 +13,7 @@
     <tspan fill="#8b949e" dx="8" font-size="14">forks</tspan>
     <tspan dx="28" font-size="28" font-weight="700">19</tspan>
     <tspan fill="#8b949e" dx="8" font-size="14">issues ouvertes</tspan>
-    <tspan dx="28" font-size="28" font-weight="700">53</tspan>
+    <tspan dx="28" font-size="28" font-weight="700">54</tspan>
     <tspan fill="#8b949e" dx="8" font-size="14">commits / 7 j</tspan>
   </text>
   <line x1="24" y1="168" x2="536" y2="168" stroke="#30363d" stroke-width="1"/>
